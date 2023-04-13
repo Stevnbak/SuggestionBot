@@ -101,7 +101,7 @@ class CommandManager {
 			const {REST, Routes} = require("discord.js");
 			const config = require("./config.json");
 
-			const rest = new REST({version: "10"}).setToken(config.TESTTOKEN);
+			const rest = new REST({version: "10"}).setToken(config.USE_TEST ? config.TESTTOKEN : config.TOKEN);
 
 			//Create help command
 			this.add("help", {description: "List of all available commands", category: "Misceleaneous", aliases: ["commands"], type: ApplicationCommandType.ChatInput}, async (/** @type {import('discord.js').ChatInputCommandInteraction} */ interaction) => {
@@ -132,7 +132,7 @@ class CommandManager {
 
 			//Reload applications.
 			try {
-				await rest.put(Routes.applicationCommands(config.TEST_CLIENT_ID), {body: this.applications});
+				await rest.put(Routes.applicationCommands(config.USE_TEST ? config.TEST_CLIENT_ID : config.CLIENT_ID), {body: this.applications});
 				Console.log("Reloaded application commands.");
 			} catch (error) {
 				console.error(error);

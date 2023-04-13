@@ -16,7 +16,7 @@ const C = require("./Console");
 const CONFIG = require("./config.json");
 
 //Getting the bot token.
-const TOKEN = CONFIG.TESTTOKEN;
+const TOKEN = CONFIG.USE_TEST ? CONFIG.TESTTOKEN : CONFIG.TOKEN;
 
 //Creating the client.
 const Client = new Discord.Client({
