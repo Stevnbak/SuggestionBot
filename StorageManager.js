@@ -10,10 +10,10 @@ class StorageManager {
 
 		Client.guilds.fetch();
 		const Guilds = Client.guilds.cache;
-		console.log(Guilds);
+		///console.log(Guilds);
 		Guilds.forEach((guild) => {
 			if (!fs.existsSync(`${path}${guild.id}.json`)) {
-				fs.writeFile(`${path}${guild.id}.json`, "{}", () => {});
+				fs.writeFileSync(`${path}${guild.id}.json`, JSON.stringify({}, null, 2));
 			}
 			storage[guild.id] = JSON.parse(fs.readFileSync(`${path}${guild.id}.json`, {encoding: "utf8"}));
 		});
@@ -21,11 +21,20 @@ class StorageManager {
 		//Save storage every minute
 		setInterval(() => {
 			for (let serverId in storage) {
-				fs.writeFile(`${path}${serverId}.json`, JSON.stringify(storage[serverId], null, 2), () => {
+				fs.writeFile(`${path}${serverId}.json`, JSON.stringify(storage[serverId] ?? {}, null, 2), () => {
 					///Console.log(`Saved storage for server with id ${serverId}`, serverId == "global" ? null : serverId);
 				});
 			}
 		}, 1 * 60 * 1000);
+
+		//Create file on joining new server
+		Client.on("guildCreate", (guild) => {
+			if (!fs.existsSync(`${path}${guild.id}.json`)) {
+				fs.writeFileSync(`${path}${guild.id}.json`, JSON.stringify({}, null, 2));
+			}
+			storage[guild.id] = JSON.parse(fs.readFileSync(`${path}${guild.id}.json`, {encoding: "utf8"}));
+		});
+
 		Console.log("Storagemanager is ready", null);
 
 		//Server data:

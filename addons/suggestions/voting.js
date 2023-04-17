@@ -2,7 +2,7 @@ const {StorageManager, Console, ExportManager, CommandManager, ChatResponder, Cl
 const {EmbedBuilder, PermissionsBitField, ApplicationCommandOptionType, ApplicationCommandType, ChannelType} = require("discord.js");
 const Discord = require("discord.js");
 
-//Button & Modal events
+//Vote button
 BotListeners.on("interactionCreate", async (/** @type {import('discord.js').ButtonInteraction} */ interaction) => {
 	if (!interaction.isButton()) return;
 	if (!interaction.customId.includes("Vote")) return;
@@ -10,7 +10,8 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	let vote = interaction.customId == "positiveVote" ? 1 : interaction.customId == "negativeVote" ? -1 : 0;
 
 	let message = await interaction.message.fetch();
-	let fields = message.embeds[0].fields;
+	let embed = message.embeds[0];
+	let fields = embed.fields;
 
 	//Get suggestion info from storage
 	let suggestions = StorageManager.get("suggestions", interaction.guild.id) || [];
@@ -54,8 +55,14 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	negativeField.value = `${suggestion.negativeVotes} - ${Math.round((suggestion.negativeVotes / totalVotes) * 100 * 100) / 100}%`;
 	neutralField.value = `${suggestion.neutralVotes} - ${Math.round((suggestion.neutralVotes / totalVotes) * 100 * 100) / 100}%`;
 
+	//Create new embed and update message
+	let newEmbed = new Discord.EmbedBuilder(embed);
+	if (suggestion.score > 20) newEmbed.setColor(CommandManager.successColor);
+	else if (suggestion.score < -20) newEmbed.setColor(CommandManager.failColor);
+	else newEmbed.setColor(CommandManager.neutralColor);
+
 	//Update embed
-	message.edit({embeds: [message.embeds[0]]});
+	message.edit({embeds: [newEmbed]});
 
 	//Update storage
 	suggestion.votes[interaction.user.id] = vote;
@@ -63,7 +70,40 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	StorageManager.set("suggestions", suggestions, interaction.guild.id);
 
 	//Interaction reply
-	interaction.reply({embeds: [new Discord.EmbedBuilder().setTitle("Vote recieved succesfully").setColor(CommandManager.successColor)], ephemeral: true});
+	interaction.reply({embeds: [new Discord.EmbedBuilder().setTitle("Vote for " + interaction.customId.replace("Vote", "") + " received successfully").setColor(CommandManager.successColor)], ephemeral: true});
+});
+
+//Delete button event
+BotListeners.on("interactionCreate", async (/** @type {import('discord.js').ButtonInteraction} */ interaction) => {
+	if (!interaction.isButton()) return;
+	if (interaction.customId != "deleteSuggestion") return;
+
+	let message = await interaction.message.fetch();
+
+	//Get suggestion info from storage
+	let suggestions = StorageManager.get("suggestions", interaction.guild.id) || [];
+	let suggestion = suggestions.find((suggestion) => suggestion.messageId == message.id);
+	if (!suggestion) {
+		await sendError(interaction, "Suggestion not found in database");
+		return;
+	}
+
+	//Check if user has permission to delete
+	let member = await interaction.guild.members.fetch(interaction.user.id);
+	if (!member.permissionsIn(message.channel).has(PermissionsBitField.Flags.ManageMessages) && member.id != suggestion.authorId) {
+		await sendError(interaction, "You do not have permission to delete this suggestion");
+		return;
+	}
+
+	//Delete suggestion
+	message.delete();
+	suggestions = suggestions.filter((s) => s.messageId != message.id);
+
+	//Update storage
+	StorageManager.set("suggestions", suggestions, interaction.guild.id);
+
+	//Interaction reply
+	interaction.reply({embeds: [new Discord.EmbedBuilder().setTitle('Deleted the suggestion with the title "' + suggestion.title + '" successfully').setColor(CommandManager.successColor)], ephemeral: true});
 });
 
 async function sendError(interaction, error) {

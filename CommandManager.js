@@ -104,7 +104,7 @@ class CommandManager {
 			const rest = new REST({version: "10"}).setToken(config.USE_TEST ? config.TESTTOKEN : config.TOKEN);
 
 			//Create help command
-			this.add("help", {description: "List of all available commands", category: "Misceleaneous", aliases: ["commands"], type: ApplicationCommandType.ChatInput}, async (/** @type {import('discord.js').ChatInputCommandInteraction} */ interaction) => {
+			this.add("help", {description: "List of all available commands", category: "Miscellaneous", aliases: ["commands"], type: ApplicationCommandType.ChatInput}, async (/** @type {import('discord.js').ChatInputCommandInteraction} */ interaction) => {
 				const embed = new EmbedBuilder();
 				embed.setTitle("Available Commands");
 				embed.setDescription("Here is a list of all available clash commands with your permissions. \n*(User context menu commands are not listed here, right click a user to see those.)*");

@@ -81,14 +81,20 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 				if (image != "None") embed.setImage(image);
 
 				//Create buttons
+				/** 
 				const positiveButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Success).setLabel("👍").setCustomId("positiveVote");
-				const neutralButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Primary).setLabel("🤷").setCustomId("neutralVote");
+				const neutralButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Primary).setLabel("🤔").setCustomId("neutralVote");
 				const negativeButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Danger).setLabel("👎").setCustomId("negativeVote");
+				*/
+				const positiveButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Success).setLabel("I agree").setCustomId("positiveVote");
+				const neutralButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Primary).setLabel("I'm not sure").setCustomId("neutralVote");
+				const negativeButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Danger).setLabel("I disagree").setCustomId("negativeVote");
+				const deleteButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Secondary).setLabel("Delete").setCustomId("deleteSuggestion");
 
 				//Send message
 				let message = await channel.send({
 					embeds: [embed],
-					components: [new Discord.ActionRowBuilder().addComponents([positiveButton, neutralButton, negativeButton])]
+					components: [new Discord.ActionRowBuilder().addComponents([positiveButton, neutralButton, negativeButton, deleteButton])]
 				});
 
 				//Add to storage
