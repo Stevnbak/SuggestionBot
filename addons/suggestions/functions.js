@@ -32,7 +32,12 @@ async function UpdateEmbed(message, positiveVotes, neutralVotes, negativeVotes) 
 	const deleteButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Secondary).setLabel("Delete").setCustomId("deleteSuggestion");
 
 	//Update embed
-	await message.edit({embeds: [newEmbed], components: [new Discord.ActionRowBuilder().addComponents([positiveButton, neutralButton, negativeButton, deleteButton])]});
+	try {
+		await message.edit({embeds: [newEmbed], components: [new Discord.ActionRowBuilder().addComponents([positiveButton, neutralButton, negativeButton, deleteButton])]});
+	} catch (error) {
+		Console.error(`Failed to update suggestion embed for suggestion "${embed.title}"`, message.guild.id);
+		return;
+	}
 	///Console.log(`Updated suggestion embed for suggestion "${embed.title}"`, message.guild.id);
 
 	//Color from score
@@ -83,7 +88,11 @@ async function SendError(/** @type {import('discord.js').ButtonInteraction} */ i
 	try {
 		await interaction.reply({embeds: [new Discord.EmbedBuilder().setTitle(error).setColor(CommandManager.failColor)], ephemeral: true});
 	} catch (e) {
-		await interaction.followUp({embeds: [new Discord.EmbedBuilder().setTitle(error).setColor(CommandManager.failColor)], ephemeral: true});
+		try {
+			await interaction.followUp({embeds: [new Discord.EmbedBuilder().setTitle(error).setColor(CommandManager.failColor)], ephemeral: true});
+		} catch (e) {
+			Console.error(`Failed to send error message to user`, interaction.guild.id);
+		}
 	}
 }
 
