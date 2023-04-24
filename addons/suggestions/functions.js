@@ -1,0 +1,93 @@
+const {StorageManager, Console, ExportManager, CommandManager, ChatResponder, Client, BotListeners} = Bot;
+const Discord = require("discord.js");
+
+async function UpdateEmbed(message, positiveVotes, neutralVotes, negativeVotes) {
+	let embed = message.embeds[0];
+	let fields = embed.fields;
+
+	//Calculate score
+	let score = positiveVotes - negativeVotes;
+	let scoreField = fields.find((field) => field.name == "Score");
+	scoreField.value = score;
+
+	//Update fields
+	let totalVotes = positiveVotes + negativeVotes + neutralVotes;
+	let positiveField = fields.find((field) => field.name == "Positive Votes");
+	let negativeField = fields.find((field) => field.name == "Negative Votes");
+	let neutralField = fields.find((field) => field.name == "Neutral Votes");
+	positiveField.value = `${positiveVotes} - ${totalVotes == 0 ? 0 : Math.round((positiveVotes / totalVotes) * 100 * 100) / 100}%`;
+	negativeField.value = `${negativeVotes} - ${totalVotes == 0 ? 0 : Math.round((negativeVotes / totalVotes) * 100 * 100) / 100}%`;
+	neutralField.value = `${neutralVotes} - ${totalVotes == 0 ? 0 : Math.round((neutralVotes / totalVotes) * 100 * 100) / 100}%`;
+
+	//Create new embed
+	let newEmbed = new Discord.EmbedBuilder(embed);
+
+	//Embed colour
+	newEmbed.setColor(GetColor(score));
+
+	//Create new buttons
+	const positiveButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Success).setLabel(`I agree - (${positiveVotes})`).setCustomId("positiveVote");
+	const neutralButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Primary).setLabel(`I'm not sure - (${neutralVotes})`).setCustomId("neutralVote");
+	const negativeButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Danger).setLabel(`I disagree - (${negativeVotes})`).setCustomId("negativeVote");
+	const deleteButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Secondary).setLabel("Delete").setCustomId("deleteSuggestion");
+
+	//Update embed
+	await message.edit({embeds: [newEmbed], components: [new Discord.ActionRowBuilder().addComponents([positiveButton, neutralButton, negativeButton, deleteButton])]});
+	///Console.log(`Updated suggestion embed for suggestion "${embed.title}"`, message.guild.id);
+
+	//Color from score
+	function GetColor(score) {
+		if (score >= 20) return CommandManager.successColor;
+		else if (score <= -20) return CommandManager.failColor;
+		else return CommandManager.neutralColor;
+	}
+	/**function GetColor(score) {
+		let start = 125;
+		let max = 255;
+		let step = Math.round((max / 50) * Math.abs(score));
+		//Create rgb values
+		let primary = start + step;
+		let secondary = start - step;
+		if (primary > max) primary = max;
+		if (secondary < 0) secondary = 0;
+		//Set rgb values
+		if (score > 0) {
+			r = secondary;
+			g = primary;
+			b = secondary;
+		} else if (score < 0) {
+			r = primary;
+			g = secondary;
+			b = secondary;
+		} else {
+			r = start;
+			g = start;
+			b = start;
+		}
+		//Convert to hex
+		let hexColour = numberToHex(r) + numberToHex(g) + numberToHex(b);
+		function numberToHex(number) {
+			let hex = number.toString(16);
+			while (hex.length < 2) hex = "0" + hex;
+			return hex;
+		}
+		while (hexColour.length < 6) hexColour += "0";
+		hexColour.length = 6;
+
+		//Return hex
+		return hexColour;
+	}*/
+}
+
+async function SendError(/** @type {import('discord.js').ButtonInteraction} */ interaction, error) {
+	try {
+		await interaction.reply({embeds: [new Discord.EmbedBuilder().setTitle(error).setColor(CommandManager.failColor)], ephemeral: true});
+	} catch (e) {
+		await interaction.followUp({embeds: [new Discord.EmbedBuilder().setTitle(error).setColor(CommandManager.failColor)], ephemeral: true});
+	}
+}
+
+module.exports = {
+	UpdateEmbed,
+	SendError
+};

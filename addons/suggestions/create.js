@@ -2,6 +2,8 @@ const {StorageManager, Console, ExportManager, CommandManager, ChatResponder, Cl
 const {EmbedBuilder, PermissionsBitField, ApplicationCommandOptionType, ApplicationCommandType, ChannelType} = require("discord.js");
 const Discord = require("discord.js");
 
+const {SendError} = require("./functions.js");
+
 //Interaction chat event
 CommandManager.add(
 	"create",
@@ -41,89 +43,79 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 			.setTitle("Create a suggestion")
 			.setCustomId("suggestionForm")
 			.setComponents([new Discord.ActionRowBuilder().addComponents(playerInput), new Discord.ActionRowBuilder().addComponents(descriptionInput), new Discord.ActionRowBuilder().addComponents(imageInput)]);
-
-		//Send modal
-		interaction.id;
 		interaction.showModal(modal);
-		interaction
-			.awaitModalSubmit({filter: (/** @type {import('discord.js').ModalSubmitInteraction} */ inter) => inter.isModalSubmit() && inter.customId == "suggestionForm" && inter.user == interaction.user, time: 5 * 60 * 1000})
-			.then(async (/** @type {import('discord.js').ModalSubmitInteraction} */ modalInteraction) => {
-				//Get report information
-				let title = modalInteraction.fields.getTextInputValue("title");
-				let description = modalInteraction.fields.getTextInputValue("suggestion");
-				let image = modalInteraction.fields.getTextInputValue("image") || "None";
-
-				//Log channel
-				let channelID = StorageManager.get("suggestionChannel", modalInteraction.guild.id);
-				if (channelID == null) {
-					await interaction.reply({content: "The suggestion channel has not been set up yet. Please contact the server owner.", ephemeral: true});
-					return;
-				}
-				/** @type {import('discord.js').TextChannel} */ let channel = await interaction.guild.channels.fetch(channelID);
-				if (channel == null) {
-					await sendError(modalInteraction, "The suggestion channel has not been set up yet. Please contact the server owner.");
-					return;
-				}
-
-				//Embed
-				let embed = new Discord.EmbedBuilder()
-					.setTitle(title)
-					.setColor(CommandManager.neutralColor)
-					.setAuthor({name: modalInteraction.user.tag, iconURL: interaction.user.avatarURL()})
-					.setTimestamp()
-					.setDescription(description)
-					.addFields([
-						{name: "Score", value: "0", inline: false},
-						{name: "Positive Votes", value: "0 - 0%", inline: true},
-						{name: "Neutral Votes", value: "0 - 0%", inline: true},
-						{name: "Negative Votes", value: "0 - 0%", inline: true}
-					]);
-				if (image != "None") embed.setImage(image);
-
-				//Create buttons
-				/** 
-				const positiveButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Success).setLabel("👍").setCustomId("positiveVote");
-				const neutralButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Primary).setLabel("🤔").setCustomId("neutralVote");
-				const negativeButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Danger).setLabel("👎").setCustomId("negativeVote");
-				*/
-				const positiveButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Success).setLabel("I agree").setCustomId("positiveVote");
-				const neutralButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Primary).setLabel("I'm not sure").setCustomId("neutralVote");
-				const negativeButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Danger).setLabel("I disagree").setCustomId("negativeVote");
-				const deleteButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Secondary).setLabel("Delete").setCustomId("deleteSuggestion");
-
-				//Send message
-				let message = await channel.send({
-					embeds: [embed],
-					components: [new Discord.ActionRowBuilder().addComponents([positiveButton, neutralButton, negativeButton, deleteButton])]
-				});
-
-				//Add to storage
-				let suggestions = StorageManager.get("suggestions", modalInteraction.guild.id) || [];
-				suggestions.push({
-					messageId: message.id,
-					authorId: modalInteraction.user.id,
-					title: title,
-					description: description,
-					image: image,
-					score: 0,
-					positiveVotes: 0,
-					neutralVotes: 0,
-					negativeVotes: 0
-				});
-				StorageManager.set("suggestions", suggestions, modalInteraction.guild.id);
-
-				//Reply
-				await modalInteraction.reply({
-					embeds: [new Discord.EmbedBuilder().setTitle("Suggestion received successfully").setColor(CommandManager.successColor)],
-					ephemeral: true
-				});
-			})
-			.catch((error) => {
-				console.error(error);
-			});
 	}
 });
 
-async function sendError(interaction, error) {
-	await interaction.reply({embeds: [new Discord.EmbedBuilder().setTitle(error).setColor(CommandManager.failColor)], ephemeral: true});
-}
+//Modal event
+BotListeners.on("interactionCreate", async (/** @type {import('discord.js').ModalSubmitInteraction} */ interaction) => {
+	if (!interaction.isModalSubmit()) return;
+	if (interaction.customId != "suggestionForm") return;
+
+	//Get report information
+	let title = interaction.fields.getTextInputValue("title");
+	let description = interaction.fields.getTextInputValue("suggestion");
+	let image = interaction.fields.getTextInputValue("image") || "None";
+
+	//Log channel
+	let channelID = StorageManager.get("suggestionChannel", interaction.guild.id);
+	if (channelID == null) {
+		SendError(interaction, "The suggestion channel has not been set up yet. Please contact the server owner.");
+		return;
+	}
+	/** @type {import('discord.js').TextChannel} */ let channel = await interaction.guild.channels.fetch(channelID);
+	if (channel == null) {
+		SendError(interaction, "The suggestion channel has not been set up yet. Please contact the server owner.");
+		return;
+	}
+
+	//Embed
+	let embed = new Discord.EmbedBuilder()
+		.setTitle(title)
+		.setColor(CommandManager.neutralColor)
+		.setAuthor({name: interaction.user.tag, iconURL: interaction.user.avatarURL()})
+		.setTimestamp()
+		.setDescription(description)
+		.addFields([
+			{name: "Score", value: "0", inline: false},
+			{name: "Positive Votes", value: "0 - 0%", inline: true},
+			{name: "Neutral Votes", value: "0 - 0%", inline: true},
+			{name: "Negative Votes", value: "0 - 0%", inline: true}
+		]);
+	if (image != "None") embed.setImage(image);
+
+	//Create buttons
+	const positiveButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Success).setLabel("I agree - (0)").setCustomId("positiveVote");
+	const neutralButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Primary).setLabel("I'm not sure - (0)").setCustomId("neutralVote");
+	const negativeButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Danger).setLabel("I disagree - (0)").setCustomId("negativeVote");
+	const deleteButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Secondary).setLabel("Delete").setCustomId("deleteSuggestion");
+	const resetButton = new Discord.ButtonBuilder().setStyle(Discord.ButtonStyle.Secondary).setLabel("Reset vote").setCustomId("resetVote");
+
+	//Send message
+	let message = await channel.send({
+		embeds: [embed],
+		components: [new Discord.ActionRowBuilder().addComponents([positiveButton, neutralButton, negativeButton, deleteButton])]
+	});
+
+	//Add to storage
+	let suggestions = StorageManager.get("suggestions", interaction.guild.id) || [];
+	suggestions.push({
+		messageId: message.id,
+		authorId: interaction.user.id,
+		title: title,
+		description: description,
+		image: image,
+		score: 0,
+		positiveVotes: 0,
+		neutralVotes: 0,
+		negativeVotes: 0
+	});
+	StorageManager.set("suggestions", suggestions, interaction.guild.id);
+
+	//Reply
+	await interaction.reply({
+		embeds: [new Discord.EmbedBuilder().setTitle(`Suggestion "${title}" received successfully`).setColor(CommandManager.successColor)],
+		ephemeral: true
+	});
+	Console.log(`${interaction.user.tag} created suggestion "${title}"`, interaction.guild.id);
+});
