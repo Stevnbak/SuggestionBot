@@ -84,6 +84,25 @@ async function UpdateEmbed(message, positiveVotes, neutralVotes, negativeVotes) 
 	}*/
 }
 
+async function CanMemberCreateSuggestion(/** @type {import('discord.js').GuildMember} */ member) {
+	let guild = member.guild;
+	let updatedMember = await member.fetch();
+	//Timed out
+	if (updatedMember.communicationDisabledUntil != null) return false;
+
+	//Ignore roles
+	let ignoreRoles = StorageManager.get("ignoredRoles", guild.id) ?? [];
+	let userRoles = updatedMember.roles.cache.map((role) => role.id);
+	if (ignoreRoles.some((roleId) => userRoles.includes(roleId))) return false;
+
+	//Ignore users
+	let ignoreUsers = StorageManager.get("ignoredUsers", guild.id) ?? [];
+	if (ignoreUsers.includes(updatedMember.id)) return false;
+
+	//Allowed
+	return true;
+}
+
 async function SendError(/** @type {import('discord.js').ButtonInteraction} */ interaction, error) {
 	try {
 		await interaction.reply({embeds: [new Discord.EmbedBuilder().setTitle(error).setColor(CommandManager.failColor)], ephemeral: true});
@@ -91,12 +110,17 @@ async function SendError(/** @type {import('discord.js').ButtonInteraction} */ i
 		try {
 			await interaction.followUp({embeds: [new Discord.EmbedBuilder().setTitle(error).setColor(CommandManager.failColor)], ephemeral: true});
 		} catch (e) {
-			Console.error(`Failed to send error message to user`, interaction.guild.id);
+			try {
+				await interaction.editReply({embeds: [new Discord.EmbedBuilder().setTitle(error).setColor(CommandManager.failColor)], ephemeral: true});
+			} catch (e) {
+				Console.error(`Failed to send error message to user`, interaction.guild.id);
+			}
 		}
 	}
 }
 
 module.exports = {
 	UpdateEmbed,
-	SendError
+	SendError,
+	CanMemberCreateSuggestion
 };

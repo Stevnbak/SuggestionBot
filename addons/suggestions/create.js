@@ -2,7 +2,7 @@ const {StorageManager, Console, ExportManager, CommandManager, ChatResponder, Cl
 const {EmbedBuilder, PermissionsBitField, ApplicationCommandOptionType, ApplicationCommandType, ChannelType} = require("discord.js");
 const Discord = require("discord.js");
 
-const {SendError} = require("./functions.js");
+const {SendError, CanMemberCreateSuggestion} = require("./functions.js");
 
 //Interaction chat event
 CommandManager.add(
@@ -33,6 +33,12 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	if (!interaction.isButton()) return;
 	//Handle create button click
 	if (interaction.customId === "createSuggestionButton") {
+		//Check if member can create suggestion
+		if (!(await CanMemberCreateSuggestion(interaction.member))) {
+			await SendError(interaction, "You cannot create a suggestion at this time.");
+			return;
+		}
+
 		//Create input fields
 		const playerInput = new Discord.TextInputBuilder().setCustomId("title").setLabel("Title of your suggestion").setStyle(Discord.TextInputStyle.Short).setMaxLength(100).setRequired(true);
 		const descriptionInput = new Discord.TextInputBuilder().setCustomId("suggestion").setLabel("Describe the suggestion in great detail").setStyle(Discord.TextInputStyle.Paragraph).setMinLength(50).setMaxLength(1000).setRequired(true);
@@ -51,6 +57,12 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 BotListeners.on("interactionCreate", async (/** @type {import('discord.js').ModalSubmitInteraction} */ interaction) => {
 	if (!interaction.isModalSubmit()) return;
 	if (interaction.customId != "suggestionForm") return;
+
+	//Check if member can create suggestion
+	if (!(await CanMemberCreateSuggestion(interaction.member))) {
+		await SendError(interaction, "You cannot create a suggestion at this time.");
+		return;
+	}
 
 	//Get report information
 	let title = interaction.fields.getTextInputValue("title");
