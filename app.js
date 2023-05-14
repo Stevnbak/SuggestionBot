@@ -30,12 +30,15 @@ const Console = new C(Client);
 Console.log("Console is ready", null);
 
 Client.on("ready", async () => {
+	//Setting up the managers
 	const ExportManager = new EM();
 	const BotListeners = new LM(Client);
 	const StorageManager = await new SM(Client, Console);
 	await convertOldData(StorageManager);
 	const CommandManager = new CM(Client, StorageManager, Console);
 	const ChatResponder = new CR(BotListeners, StorageManager, Console);
+
+	//Setting up the bot object
 	global.Bot = {
 		Client,
 		BotListeners,
@@ -46,9 +49,10 @@ Client.on("ready", async () => {
 		Console
 	};
 
+	//Backup
 	require("./BackupManager");
 
-	//Requiring modules.
+	//Requiring modules
 	for (let addon of fs.readdirSync(path.join(__dirname, "addons"))) {
 		require(path.join(__dirname, "addons", addon, "addon"));
 	}
@@ -58,7 +62,7 @@ Client.on("ready", async () => {
 	await CommandManager.setup();
 
 	//Ready
-	Console.log("Bot is up and running", null);
+	Console.log("Bot is up and running with client " + Client.user.username, null);
 });
 //Logging in.
 Client.login(TOKEN);

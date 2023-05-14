@@ -203,13 +203,13 @@ const convertOldData = async (StorageManager) => {
 		let guildId = file.split(".")[0];
 		let fileData = JSON.parse(fs.readFileSync(`./database/${file}`, "utf8"));
 		if (guildId == "global") continue;
-		let guild = await Client.guilds.fetch(guildId);
+		let guild = await Client.guilds.fetch(guildId).catch(() => {});
 		//Add the guild to the database
 		await storage.findOne({id: guildId}).then((res) => {
 			if (!res) {
 				///Console.log("Adding new server to database");
 				storage
-					.create({id: guildId, name: guild.name})
+					.create({id: guildId, name: guild ? guild.name : "Unknown"})
 					.then(() => {
 						///Console.log("Added new server to database");
 					})
