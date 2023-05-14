@@ -34,7 +34,7 @@ Client.on("ready", async () => {
 	const ExportManager = new EM();
 	const BotListeners = new LM(Client);
 	const StorageManager = await new SM(Client, Console);
-	await convertOldData(StorageManager);
+	///await convertOldData(StorageManager);
 	const CommandManager = new CM(Client, StorageManager, Console);
 	const ChatResponder = new CR(BotListeners, StorageManager, Console);
 
