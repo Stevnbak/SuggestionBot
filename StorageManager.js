@@ -20,12 +20,32 @@ class StorageManager {
 		storage["global"] = JSON.parse(fs.readFileSync(`${path}global.json`, {encoding: "utf8"}));
 		//Save storage every minute
 		setInterval(() => {
-			for (let serverId in storage) {
-				fs.writeFile(`${path}${serverId}.json`, JSON.stringify(storage[serverId] ?? {}, null, 2), () => {
-					///Console.log(`Saved storage for server with id ${serverId}`, serverId == "global" ? null : serverId);
-				});
-			}
+			saveDataFiles();
 		}, 1 * 60 * 1000);
+		process.on("SIGINT", () => {
+			Console.log("SIGINT signal received.");
+			saveDataFiles(true);
+		});
+		process.on("message", (msg) => {
+			if (msg == "shutdown") {
+				Console.log("Shutting down");
+				saveDataFiles(true);
+			}
+		});
+		function saveDataFiles(sync = false) {
+			for (let serverId in storage) {
+				let dataPath = `${path}${serverId}.json`;
+				let data = JSON.stringify(storage[serverId] ?? {}, null, 2);
+				if (sync) {
+					fs.writeFileSync(dataPath, data);
+					///Console.log(`Saved storage for server with id ${serverId}`, serverId == "global" ? null : serverId);
+				} else {
+					fs.writeFile(dataPath, data, () => {
+						///Console.log(`Saved storage for server with id ${serverId}`, serverId == "global" ? null : serverId);
+					});
+				}
+			}
+		}
 
 		//Create file on joining new server
 		Client.on("guildCreate", (guild) => {

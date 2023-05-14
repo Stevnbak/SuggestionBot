@@ -88,16 +88,27 @@ async function CanMemberCreateSuggestion(/** @type {import('discord.js').GuildMe
 	let guild = member.guild;
 	let updatedMember = await member.fetch();
 	//Timed out
-	if (updatedMember.communicationDisabledUntil != null) return false;
+	if (updatedMember.communicationDisabledUntil != null) {
+		if (updatedMember.communicationDisabledUntil > Date.now()) {
+			Console.log("Blocked suggestion from user with name " + updatedMember.user.tag + " because of a timeout.", guild.id);
+			return false;
+		}
+	}
 
 	//Ignore roles
 	let ignoreRoles = StorageManager.get("ignoredRoles", guild.id) ?? [];
 	let userRoles = updatedMember.roles.cache.map((role) => role.id);
-	if (ignoreRoles.some((roleId) => userRoles.includes(roleId))) return false;
+	if (ignoreRoles.some((roleId) => userRoles.includes(roleId))) {
+		Console.log("Blocked suggestion from user with name " + updatedMember.user.tag + " because of an ignored role.", guild.id);
+		return false;
+	}
 
 	//Ignore users
 	let ignoreUsers = StorageManager.get("ignoredUsers", guild.id) ?? [];
-	if (ignoreUsers.includes(updatedMember.id)) return false;
+	if (ignoreUsers.includes(updatedMember.id)) {
+		Console.log("Blocked suggestion from ignored user with name " + updatedMember.user.tag, guild.id);
+		return false;
+	}
 
 	//Allowed
 	return true;

@@ -74,7 +74,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	interaction.deleteReply();
 
 	///interaction.reply({embeds: [new Discord.EmbedBuilder().setTitle(reply).setColor(CommandManager.successColor)], ephemeral: true});
-	Console.log(consoleReply);
+	Console.log(consoleReply, interaction.guild.id);
 });
 
 //Delete button event
