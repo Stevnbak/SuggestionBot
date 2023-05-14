@@ -93,7 +93,7 @@ CommandManager.add(
 	async (/** @type {import('discord.js').ChatInputCommandInteraction} */ interaction) => {
 		let sub = interaction.options.getSubcommand();
 
-		let currentList = StorageManager.get("ignoredRoles", interaction.guild.id) ?? [];
+		let currentList = (await StorageManager.get("ignoredRoles", interaction.guild.id)) ?? [];
 
 		if (sub == "add" || sub == "remove") {
 			let role = interaction.options.getRole("role");
@@ -183,7 +183,7 @@ CommandManager.add(
 	async (/** @type {import('discord.js').ChatInputCommandInteraction} */ interaction) => {
 		let sub = interaction.options.getSubcommand();
 
-		let currentList = StorageManager.get("ignoredUsers", interaction.guild.id) ?? [];
+		let currentList = (await StorageManager.get("ignoredUsers", interaction.guild.id)) ?? [];
 
 		if (sub == "add" || sub == "remove") {
 			let user = interaction.options.getUser("user");

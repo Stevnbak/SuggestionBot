@@ -70,7 +70,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Moda
 	let image = interaction.fields.getTextInputValue("image") || "None";
 
 	//Log channel
-	let channelID = StorageManager.get("suggestionChannel", interaction.guild.id);
+	let channelID = await StorageManager.get("suggestionChannel", interaction.guild.id);
 	if (channelID == null) {
 		SendError(interaction, "The suggestion channel has not been set up yet. Please contact the server owner.");
 		return;
@@ -110,7 +110,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Moda
 	});
 
 	//Add to storage
-	let suggestions = StorageManager.get("suggestions", interaction.guild.id) || [];
+	let suggestions = (await StorageManager.get("suggestions", interaction.guild.id)) || [];
 	suggestions.push({
 		messageId: message.id,
 		authorId: interaction.user.id,
@@ -122,7 +122,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Moda
 		neutralVotes: 0,
 		negativeVotes: 0
 	});
-	StorageManager.set("suggestions", suggestions, interaction.guild.id);
+	await StorageManager.set("suggestions", suggestions, interaction.guild.id);
 
 	//Reply
 	await interaction.reply({

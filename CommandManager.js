@@ -1,6 +1,5 @@
 //@ts-check
 const {EmbedBuilder, PermissionsBitField, ChannelType, ApplicationCommandType, ApplicationCommandOptionType, CommandInteraction} = require("discord.js");
-
 /**
  * @typedef CommandOptions
  * @property {string} description | Description of the command.
@@ -99,9 +98,8 @@ class CommandManager {
 
 		this.setup = async () => {
 			const {REST, Routes} = require("discord.js");
-			const config = require("./config.json");
 
-			const rest = new REST({version: "10"}).setToken(config.USE_TEST ? config.TESTTOKEN : config.TOKEN);
+			const rest = new REST({version: "10"}).setToken(process.env.USE_TEST ? process.env.TESTTOKEN || "" : process.env.TOKEN || "");
 
 			//Create help command
 			this.add("help", {description: "List of all available commands", category: "Miscellaneous", aliases: ["commands"], type: ApplicationCommandType.ChatInput}, async (/** @type {import('discord.js').ChatInputCommandInteraction} */ interaction) => {
@@ -132,7 +130,7 @@ class CommandManager {
 
 			//Reload applications.
 			try {
-				await rest.put(Routes.applicationCommands(config.USE_TEST ? config.TEST_CLIENT_ID : config.CLIENT_ID), {body: this.applications});
+				await rest.put(Routes.applicationCommands(process.env.USE_TEST ? process.env.TEST_CLIENT_ID || "" : process.env.CLIENT_ID || ""), {body: this.applications});
 				Console.log("Reloaded application commands.");
 			} catch (error) {
 				console.error(error);

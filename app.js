@@ -1,8 +1,10 @@
+console.log("Starting bot...");
 //Node modules required:
 const Discord = require("discord.js");
 const {GatewayIntentBits, Partials} = require("discord.js");
 const fs = require("fs");
 const path = require("path");
+require("dotenv").config();
 
 //Managers required:
 const SM = require("./StorageManager");
@@ -12,12 +14,11 @@ const CM = require("./CommandManager");
 const CR = require("./ChatResponder");
 const C = require("./Console");
 
-//Config file.
-const CONFIG = require("./config.json");
+//Convert old data
+const {convertOldData} = require("./StorageManager");
 
 //Getting the bot token.
-const TOKEN = CONFIG.USE_TEST ? CONFIG.TESTTOKEN : CONFIG.TOKEN;
-
+const TOKEN = process.env.USE_TEST ? process.env.TESTTOKEN : process.env.TOKEN;
 //Creating the client.
 const Client = new Discord.Client({
 	disabledEvents: ["TYPING_START", "TYPING_STOP", "CHANNEL_PINS_UPDATE", "USER_SETTINGS_UPDATE"],
@@ -30,9 +31,9 @@ Console.log("Console is ready", null);
 
 Client.on("ready", async () => {
 	const ExportManager = new EM();
-	ExportManager.export("config", CONFIG);
 	const BotListeners = new LM(Client);
-	const StorageManager = new SM(Client, Console);
+	const StorageManager = await new SM(Client, Console);
+	await convertOldData(StorageManager);
 	const CommandManager = new CM(Client, StorageManager, Console);
 	const ChatResponder = new CR(BotListeners, StorageManager, Console);
 	global.Bot = {

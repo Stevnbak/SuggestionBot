@@ -96,7 +96,7 @@ async function CanMemberCreateSuggestion(/** @type {import('discord.js').GuildMe
 	}
 
 	//Ignore roles
-	let ignoreRoles = StorageManager.get("ignoredRoles", guild.id) ?? [];
+	let ignoreRoles = (await StorageManager.get("ignoredRoles", guild.id)) ?? [];
 	let userRoles = updatedMember.roles.cache.map((role) => role.id);
 	if (ignoreRoles.some((roleId) => userRoles.includes(roleId))) {
 		Console.log("Blocked suggestion from user with name " + updatedMember.user.tag + " because of an ignored role.", guild.id);
@@ -104,7 +104,7 @@ async function CanMemberCreateSuggestion(/** @type {import('discord.js').GuildMe
 	}
 
 	//Ignore users
-	let ignoreUsers = StorageManager.get("ignoredUsers", guild.id) ?? [];
+	let ignoreUsers = (await StorageManager.get("ignoredUsers", guild.id)) ?? [];
 	if (ignoreUsers.includes(updatedMember.id)) {
 		Console.log("Blocked suggestion from ignored user with name " + updatedMember.user.tag, guild.id);
 		return false;

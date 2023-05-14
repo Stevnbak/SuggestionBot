@@ -16,7 +16,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	let message = await interaction.message.fetch();
 
 	//Get suggestion info from storage
-	let suggestions = StorageManager.get("suggestions", interaction.guild.id) || [];
+	let suggestions = (await StorageManager.get("suggestions", interaction.guild.id)) || [];
 	let suggestion = suggestions.find((suggestion) => suggestion.messageId == message.id);
 	if (!suggestion) {
 		await SendError(interaction, "Suggestion not found in database");
@@ -85,7 +85,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	let message = await interaction.message.fetch();
 
 	//Get suggestion info from storage
-	let suggestions = StorageManager.get("suggestions", interaction.guild.id) || [];
+	let suggestions = (await StorageManager.get("suggestions", interaction.guild.id)) || [];
 	let suggestion = suggestions.find((suggestion) => suggestion.messageId == message.id);
 	if (!suggestion) {
 		await SendError(interaction, "Suggestion not found in database");
