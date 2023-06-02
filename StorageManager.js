@@ -9,23 +9,7 @@ const serverSchema = new mongoose.Schema({
 	name: {type: String, required: false},
 	suggestionChannel: {type: String, required: false},
 	suggestions: {
-		type: [
-			{
-				messageId: String,
-				authorId: String,
-				title: String,
-				description: String,
-				image: String,
-				score: Number,
-				positiveVotes: Number,
-				negativeVotes: Number,
-				neutralVotes: Number,
-				votes: {
-					type: Object,
-					default: {}
-				}
-			}
-		],
+		type: [],
 		default: []
 	},
 	ignoredRoles: {
@@ -43,22 +27,40 @@ const globalSchema = new mongoose.Schema({
 	id: {type: String, required: true, unique: true},
 	backupTime: Number
 });
-//Models
-const storage = mongoose.model("Server Storage", serverSchema, "servers");
-const globalStorage = mongoose.model("Global Storage", globalSchema, "global");
+const suggestionSchema = new mongoose.Schema({
+	serverId: {type: String, required: true},
+	messageId: {type: String, required: true, unique: true},
+	authorId: {type: String, required: true},
+	title: {type: String, required: true},
+	description: {type: String, required: true},
+	image: {type: String, required: false},
+	positiveVotes: {type: Number, required: true},
+	negativeVotes: {type: Number, required: true},
+	neutralVotes: {type: Number, required: true},
+	votes: {
+		type: Object,
+		default: {}
+	}
+});
+
 class StorageManager {
+	//Models
+	storage = mongoose.model("Server Storage", serverSchema, "servers");
+	suggestionStorage = mongoose.model("Suggestion Storage", suggestionSchema, "suggestions");
+	globalStorage = mongoose.model("Global Storage", globalSchema, "global");
+
 	//Constructor
-	constructor(client, console) {
+	constructor(client, consoleObject) {
 		Client = client;
-		Console = console;
+		Console = consoleObject;
 
 		//Add entry on joining new server
 		Client.on("guildCreate", (guild) => {
 			Console.log("Joined server", guild.id);
-			storage.findOne({id: guild.id}).then((res) => {
+			this.storage.findOne({id: guild.id}).then((res) => {
 				if (!res) {
 					///Console.log("Adding new server to database");
-					storage
+					this.storage
 						.create({id: guild.id, name: guild.name})
 						.then(() => {
 							///Console.log("Added new server to database");
@@ -92,22 +94,33 @@ class StorageManager {
 			for (let guild of Guilds) {
 				let guildId = guild[0];
 				let guildName = guild[1].name;
-				let res = await storage.findOne({id: guildId});
+				console.log(guildId + ": " + guildName);
+				let res = await this.storage.findOne({id: guildId});
 				if (!res) {
 					///Console.log("Adding new server to database");
-					await storage.create({id: guildId, name: guildName}).catch((err) => {
+					await this.storage.create({id: guildId, name: guildName}).catch((err) => {
 						Console.error(err);
 					});
 					///Console.log("Added new server to database");
 				} else {
 					///Console.log("Server already in database");
+					//Update server name:
+					await this.storage.updateOne({id: guildId}, {name: guildName});
+					//Convert old suggestions to new format:
+					/**let suggestions = await this.get("suggestions", guildId);
+					if (suggestions) {
+						for (let suggestion of suggestions) {
+							if (!(await this.getSuggestion(suggestion.messageId, guildId))) await this.createSuggestion(suggestion.messageId, suggestion, guildId);
+						}
+						await this.unset("suggestions", guildId);
+					}*/
 				}
 			}
 			//Add global entry
-			globalStorage.findOne({id: "global"}).then((res) => {
+			this.globalStorage.findOne({id: "global"}).then((res) => {
 				if (!res) {
 					///Console.log("Adding new global entry to database");
-					globalStorage
+					this.globalStorage
 						.create({id: "global", backupTime: 0})
 						.then(() => {
 							///Console.log("Added new global entry to database");
@@ -119,13 +132,14 @@ class StorageManager {
 					///Console.log("Global entry already in database");
 				}
 			});
-			Console.log("Added all entries to database");
+			///Console.log("Added all entries to database");
 			//Resolve
 			Console.log("Storagemanager is ready");
 			resolve(this);
 		});
 	}
 
+	//Server data:
 	/**
 	 * Store data into storage.
 	 * @param {string} name Name of the thing to be saved.
@@ -133,7 +147,7 @@ class StorageManager {
 	 * @param {string} serverId Id of the server to save to
 	 */
 	async set(name, value, serverId) {
-		await storage.updateOne({id: serverId}, {[name]: value});
+		await this.storage.updateOne({id: serverId}, {[name]: value});
 	}
 
 	/**
@@ -142,7 +156,7 @@ class StorageManager {
 	 * @param {string} serverId Id of the server to save to
 	 */
 	async unset(name, serverId) {
-		await storage.updateOne({id: serverId}, {[name]: null});
+		await this.storage.updateOne({id: serverId}, {[name]: null});
 	}
 
 	/**
@@ -151,9 +165,55 @@ class StorageManager {
 	 * @param {string} serverId Id of the server to save to
 	 */
 	async get(name, serverId) {
-		return await storage.findOne({id: serverId}).then((res) => {
+		return await this.storage.findOne({id: serverId}).then((res) => {
 			if (res) {
 				return res[name];
+			} else {
+				return null;
+			}
+		});
+	}
+
+	//Suggestion data:
+	/**
+	 * Add data into suggestion storage.
+	 * @param {string} messageId Id of the message from suggestion to set
+	 * @param {*} value Value of the config.
+	 * @param {string} serverId Id of the server to save to
+	 */
+	async createSuggestion(messageId, value, serverId) {
+		value.serverId = serverId;
+		value.messageId = messageId;
+		await this.suggestionStorage.create(value);
+	}
+	/**
+	 * Store data into suggestion storage.
+	 * @param {string} messageId Id of the message from suggestion to set
+	 * @param {*} value Value of the config.
+	 * @param {string} serverId Id of the server to save to
+	 */
+	async updateSuggestion(messageId, value, serverId) {
+		value.serverId = serverId;
+		value.messageId = messageId;
+		await this.suggestionStorage.updateOne({messageId: messageId}, value);
+	}
+	/**
+	 * Delete data from suggestion storage.
+	 * @param {string} messageId Id of the message from suggestion to set
+	 * @param {string} serverId Id of the server to save to
+	 */
+	async deleteSuggestion(messageId, serverId) {
+		await this.suggestionStorage.findOneAndRemove({messageId: messageId});
+	}
+	/**
+	 * Retrieve a value from storage.
+	 * @param {string} messageId Id of the message to get suggestion from
+	 * @param {string} serverId Id of the server to save to
+	 */
+	async getSuggestion(messageId, serverId) {
+		return await this.suggestionStorage.findOne({messageId: messageId}).then((res) => {
+			if (res) {
+				return res;
 			} else {
 				return null;
 			}
@@ -167,7 +227,7 @@ class StorageManager {
 	 * @param {*} value Value of the config.
 	 */
 	async globalSet(name, value) {
-		await globalStorage.updateOne({id: "global"}, {[name]: value});
+		await this.globalStorage.updateOne({id: "global"}, {[name]: value});
 	}
 
 	/**
@@ -175,7 +235,7 @@ class StorageManager {
 	 * @param {string} name Name of the file to be removed.
 	 */
 	async globalUnset(name) {
-		await globalStorage.updateOne({id: "global"}, {[name]: null});
+		await this.globalStorage.updateOne({id: "global"}, {[name]: null});
 	}
 
 	/**
@@ -183,7 +243,7 @@ class StorageManager {
 	 * @param {string} name Name of the file to be retrieved.
 	 */
 	async globalGet(name) {
-		return await globalStorage.findOne({id: "global"}).then((res) => {
+		return await this.globalStorage.findOne({id: "global"}).then((res) => {
 			if (res) {
 				return res[name];
 			} else {
@@ -194,7 +254,7 @@ class StorageManager {
 }
 
 //Convert old data files to new database entries
-const convertOldData = async (StorageManager) => {
+/**const convertOldData = async (StorageManager) => {
 	//Get all files in the data folder
 	const files = fs.readdirSync("./database");
 	//Loop through all files
@@ -228,8 +288,8 @@ const convertOldData = async (StorageManager) => {
 		fs.unlinkSync(`./database/${file}`);
 	}
 	Console.log("Converted old data files to new database entries");
-};
+};*/
 
 //Export the class
 module.exports = StorageManager;
-module.exports.convertOldData = convertOldData;
+///module.exports.convertOldData = convertOldData;

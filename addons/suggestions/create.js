@@ -110,8 +110,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Moda
 	});
 
 	//Add to storage
-	let suggestions = (await StorageManager.get("suggestions", interaction.guild.id)) || [];
-	suggestions.push({
+	let suggestion = {
 		messageId: message.id,
 		authorId: interaction.user.id,
 		title: title,
@@ -121,8 +120,8 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Moda
 		positiveVotes: 0,
 		neutralVotes: 0,
 		negativeVotes: 0
-	});
-	await StorageManager.set("suggestions", suggestions, interaction.guild.id);
+	};
+	await StorageManager.createSuggestion(message.id, suggestion, interaction.guild.id);
 
 	//Reply
 	await interaction.reply({

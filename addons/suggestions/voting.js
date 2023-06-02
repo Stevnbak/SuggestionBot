@@ -16,8 +16,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	let message = await interaction.message.fetch();
 
 	//Get suggestion info from storage
-	let suggestions = (await StorageManager.get("suggestions", interaction.guild.id)) || [];
-	let suggestion = suggestions.find((suggestion) => suggestion.messageId == message.id);
+	let suggestion = await StorageManager.getSuggestion(message.id, interaction.guild.id);
 	if (!suggestion) {
 		await SendError(interaction, "Suggestion not found in database");
 		return;
@@ -35,7 +34,6 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 		if (oldVote == 1) suggestion.positiveVotes--;
 		else if (oldVote == -1) suggestion.negativeVotes--;
 		else if (oldVote == 0) suggestion.neutralVotes--;
-		suggestion.score -= oldVote;
 	} else {
 		if (vote == null) {
 			await SendError(interaction, "You have not voted on this suggestion yet");
@@ -54,8 +52,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	//Update storage
 	if (vote != null) suggestion.votes[interaction.user.id] = vote;
 	else delete suggestion.votes[interaction.user.id];
-	suggestions[suggestions.findIndex((suggestion) => suggestion.messageId == message.id)] = suggestion;
-	StorageManager.set("suggestions", suggestions, interaction.guild.id);
+	await StorageManager.updateSuggestion(message.id, suggestion, interaction.guild.id);
 
 	//Interaction reply
 	let reply;
@@ -85,8 +82,7 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 	let message = await interaction.message.fetch();
 
 	//Get suggestion info from storage
-	let suggestions = (await StorageManager.get("suggestions", interaction.guild.id)) || [];
-	let suggestion = suggestions.find((suggestion) => suggestion.messageId == message.id);
+	let suggestion = StorageManager.getSuggestion(message.id, interaction.guild.id);
 	if (!suggestion) {
 		await SendError(interaction, "Suggestion not found in database");
 		return;
@@ -101,10 +97,10 @@ BotListeners.on("interactionCreate", async (/** @type {import('discord.js').Butt
 
 	//Delete suggestion
 	message.delete();
-	suggestions = suggestions.filter((s) => s.messageId != message.id);
+	StorageManager.deleteSuggestion(message.id, interaction.guild.id);
 
 	//Update storage
-	StorageManager.set("suggestions", suggestions, interaction.guild.id);
+	StorageManager.updateSuggestion(message.id, suggestion, interaction.guild.id);
 
 	//Interaction reply
 	interaction.reply({embeds: [new Discord.EmbedBuilder().setTitle('Deleted the suggestion with the title "' + suggestion.title + '" successfully').setColor(CommandManager.successColor)], ephemeral: true});

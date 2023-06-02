@@ -16,7 +16,7 @@ CommandManager.add(
 		Console.log("Starting to refresh all suggestion embeds", interaction.guild.id);
 
 		//Refresh suggestion embeds on bot start
-		let suggestions = await StorageManager.get("suggestions", interaction.guild.id);
+		let suggestions = await StorageManager.suggestionStorage.find({serverId: interaction.guild.id});
 		if (!suggestions) return;
 		/** @type {import('discord.js').TextChannel} */ let channel = await interaction.guild.channels.fetch(await StorageManager.get("suggestionChannel", interaction.guild.id));
 		if (!channel) return;
@@ -25,8 +25,7 @@ CommandManager.add(
 		for (let suggestion of [...suggestions]) {
 			//Refresh message and suggestion data
 			let message = await channel.messages.fetch(suggestion.messageId);
-			suggestions = await StorageManager.get("suggestions", interaction.guild.id);
-			let suggestionData = suggestions.find((s) => s.messageId == suggestion.messageId);
+			let suggestionData = StorageManager.getSuggestion(suggestion.messageId, interaction.guild.id);
 
 			if (message) {
 				//Update embed if message is found

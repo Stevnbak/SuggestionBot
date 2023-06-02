@@ -14,9 +14,6 @@ const CM = require("./CommandManager");
 const CR = require("./ChatResponder");
 const C = require("./Console");
 
-//Convert old data
-const {convertOldData} = require("./StorageManager");
-
 //Getting the bot token.
 const TOKEN = process.env.USE_TEST ? process.env.TESTTOKEN : process.env.TOKEN;
 //Creating the client.
@@ -34,7 +31,6 @@ Client.on("ready", async () => {
 	const ExportManager = new EM();
 	const BotListeners = new LM(Client);
 	const StorageManager = await new SM(Client, Console);
-	///await convertOldData(StorageManager);
 	const CommandManager = new CM(Client, StorageManager, Console);
 	const ChatResponder = new CR(BotListeners, StorageManager, Console);
 
