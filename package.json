@@ -1,19 +1,27 @@
 {
-	"name": "bot",
-	"version": "0.0.1",
-	"description": "Bot made by StevnbaK",
-	"main": "app.js",
-	"author": "StevnbaK",
-	"dependencies": {
-		"@discordjs/rest": "^0.5.0",
-		"adm-zip": "^0.5.9",
-		"discord-api-types": "^0.36.2",
-		"discord.js": "^14.11.0",
-		"dotenv": "^16.0.3",
-		"fs": "*",
-		"mongodb": "^5.5.0",
-		"mongoose": "^7.1.1",
-		"path": "*",
-		"pm2": "^5.2.0"
-	}
+    "name": "example-bot",
+    "version": "0.0.1",
+    "description": "Discord Bot made by Stevnbak",
+    "main": "app.ts",
+    "private": true,
+    "type": "commonjs",
+    "author": "Stevnbak",
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@discordjs/rest": "^2.2.0",
+        "discord.js": "^14.14.1",
+        "dotenv": "^16.4.1",
+        "fs": "^0.0.1-security",
+        "mongodb": "^6.3.0",
+        "path": "^0.12.7",
+        "winston": "^3.11.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.3.3"
+    },
+    "overrides": {
+        "discord-api-types": "^0.37.67"
+    }
 }

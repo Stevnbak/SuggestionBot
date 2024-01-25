@@ -1,20 +1,15 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
+            "type": "bun",
             "request": "launch",
-            "name": "Debug Bot [Windows]",
-            "program": "${workspaceFolder}\\app.js"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Bot [Unix]",
-            "program": "${workspaceFolder}/app.js"
+            "name": "Debug Bot",
+            //"preLaunchTask": "build",
+            "program": "src/app.ts",
+            "cwd": "${workspaceFolder}",
+            "env": { "NODE_ENV": "development" },
+            "runtime": "bun"
         }
     ]
 }

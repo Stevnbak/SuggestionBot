@@ -2,7 +2,8 @@
     "bracketSpacing": true,
     "quoteProps": "consistent",
     "semi": true,
-    "singleQuote": true,
+    "singleQuote": false,
     "tabWidth": 4,
-    "printWidth": 250
+    "printWidth": 200,
+    "trailingComma": "none"
 }
