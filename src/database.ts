@@ -16,7 +16,7 @@ export async function startConnection() {
         // Connect the client to the server
         await client.connect();
         // Connect to databse
-        database = client.db("example-bot");
+        database = client.db("suggestion-bot");
         // Get collections
         collections = {
             settings: database.collection("guild-settings"),

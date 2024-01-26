@@ -1,5 +1,5 @@
 {
-    "name": "example-bot",
+    "name": "suggestion-bot",
     "version": "0.0.1",
     "description": "Discord Bot made by Stevnbak",
     "main": "app.ts",

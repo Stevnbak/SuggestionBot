@@ -32,7 +32,7 @@ export const logger = winston.createLogger({
             format: "YYYY-MM-DD HH:mm:ss"
         }),
         winston.format.errors({ stack: true }),
-        winston.format.label({ label: "Example-Bot" })
+        winston.format.label({ label: "Suggestion-Bot" })
     ),
     transports: [
         new winston.transports.Console({
@@ -45,7 +45,7 @@ export const logger = winston.createLogger({
                 winston.format.timestamp({
                     format: "DD-MM-YYYY HH:mm:ss"
                 }),
-                winston.format.label({ label: "Example-Bot" }),
+                winston.format.label({ label: "Suggestion-Bot" }),
                 winston.format.colorize({ all: true }),
                 format
             )
