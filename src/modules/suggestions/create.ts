@@ -102,7 +102,8 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     let image = interaction.fields.getTextInputValue("image") || "None";
 
     //Log channel
-    let channelID = (await getServer(interaction.guild.id))?.defaultChannel;
+    let serverSettings = await getServer(interaction.guild.id);
+    let channelID = serverSettings?.defaultChannel;
     if (channelID == null) {
         SendError(interaction, "The suggestion channel has not been set up yet. Please contact the server owner.");
         return;

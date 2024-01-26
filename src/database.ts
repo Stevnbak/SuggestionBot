@@ -123,6 +123,15 @@ export async function addServer(guildId: string, name: string) {
         logger.log("critical", err);
     }
 }
+export async function updateServerName(guildId: string, name: string) {
+    try {
+        logger.log("database", `Updated name of server ${name} (${guildId})`);
+        let result = await collections.settings.updateOne({ _id: guildId }, { name });
+        return result.acknowledged;
+    } catch (err) {
+        logger.log("critical", err);
+    }
+}
 export async function setDefaultChannel(guildId: string, channelId: string | null) {
     try {
         logger.log("database", `Set default channel to ${guildId} in guild ${guildId}`);

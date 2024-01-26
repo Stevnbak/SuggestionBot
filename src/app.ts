@@ -7,7 +7,7 @@ export const isProduction = (process.env.NODE_ENV == "production") as boolean;
 import { logger, addFileLoggers } from "./logger";
 if (isProduction) addFileLoggers();
 //Setup database
-import {} from "./database";
+import { addServer, getServer, updateServerName } from "./database";
 
 //Connect to discord
 import { Client, GatewayIntentBits, Partials } from "discord.js";
@@ -49,4 +49,14 @@ client.on("ready", async () => {
     const c = await import("./commands");
     await loadModuleDir(path.resolve(path.join("src", "modules")));
     c.setupCommands();
+    //Check if every server has settings
+    await client.guilds.fetch();
+    client.guilds.cache.forEach(async (guild) => {
+        let settings = await getServer(guild.id);
+        if (!settings) {
+            addServer(guild.id, guild.name);
+        } else {
+            updateServerName(guild.id, guild.name);
+        }
+    });
 });

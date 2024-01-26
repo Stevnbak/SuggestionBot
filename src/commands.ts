@@ -69,7 +69,7 @@ const commands = [] as Command[];
 const responders = [] as Responder[];
 const discordCommandApplications = [] as ApplicationCommand[];
 export function addCommand(command: string, options: Partial<CommandOptions>, callback: Function) {
-    let completedOptions = { ...options, ...defaultCommandOptions };
+    let completedOptions = { ...defaultCommandOptions, ...options };
     commands.push({ command, options: completedOptions, callback });
     let interaction = {
         name: command,
@@ -91,7 +91,7 @@ export function addCommand(command: string, options: Partial<CommandOptions>, ca
     }
 }
 export function addResponder(word: string, options: Partial<ResponderOptions>, callback: Function) {
-    responders.push({ word, options: { ...options, ...defaultResponderOptions }, callback });
+    responders.push({ word, options: { ...defaultResponderOptions, ...options }, callback });
 }
 
 import { REST, Routes } from "discord.js";
