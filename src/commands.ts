@@ -183,13 +183,15 @@ export async function setupCommands(client: Client) {
                 try {
                     command.callback(interaction);
                 } catch (error) {
-                    interaction
-                        .reply({
-                            embeds: [new EmbedBuilder().setDescription("An error has occurred while running this command! It has been reported to the developer!").setColor(0xff0000)],
-                            ephemeral: true
-                        })
-                        .catch(() => {});
                     logger.log("critical", error);
+                    try {
+                        interaction
+                            .reply({
+                                embeds: [new EmbedBuilder().setDescription("An error has occurred while running this command! It has been reported to the developer!").setColor(0xff0000)],
+                                ephemeral: true
+                            })
+                            .catch(() => {});
+                    } catch {}
                 }
             }
         }
