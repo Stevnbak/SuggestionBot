@@ -12,7 +12,7 @@ import { startConnection, addServer, getServer, updateServerName } from "./datab
 //Connect to discord (after connecting to database)
 import client from "./client";
 const TOKEN = process.env.TOKEN;
-startConnection().then(() => {
+startConnection(isProduction).then(() => {
     client
         .login(TOKEN)
         .then(() => logger.info("Logging into discord..."))

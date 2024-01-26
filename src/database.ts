@@ -2,7 +2,7 @@ import { MongoClient, ServerApiVersion, Db, ObjectId, Collection } from "mongodb
 import { logger } from "./logger";
 //Connect to database
 let database = null as Db | null;
-export async function startConnection() {
+export async function startConnection(isProduction: boolean) {
     // Create a MongoClient with a MongoClientOptions object to set the Stable API version
     const client = new MongoClient(process.env.MONGO_DB!, {
         serverApi: {
@@ -16,7 +16,7 @@ export async function startConnection() {
         // Connect the client to the server
         await client.connect();
         // Connect to databse
-        database = client.db("suggestion-bot");
+        database = client.db("suggestion-bot" + (isProduction ? "" : "-dev"));
         // Get collections
         collections = {
             settings: database.collection("guild-settings"),
