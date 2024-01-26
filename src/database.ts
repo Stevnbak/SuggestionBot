@@ -30,7 +30,6 @@ export async function startConnection() {
         await client.close();
     }
 }
-startConnection();
 
 //Collections
 export let collections: { settings: Collection<GuildSettings>; suggestions: Collection<Suggestion> };

@@ -114,9 +114,9 @@ export async function CanMemberCreateSuggestion(member: GuildMember) {
             return false;
         }
     }
-
+    let serverSettings = await getServer(guild.id);
     //Ignore roles
-    let ignoreRoles = ((await getServer(guild.id))?.ignoredRoles ?? []) as string[];
+    let ignoreRoles = serverSettings?.ignoredRoles ?? [];
     let userRoles = updatedMember.roles.cache.map((role) => role.id);
     if (ignoreRoles.some((roleId) => userRoles.includes(roleId))) {
         logger.log("Blocked suggestion from user with name " + updatedMember.user.tag + " because of an ignored role.", guild.id);
@@ -124,7 +124,7 @@ export async function CanMemberCreateSuggestion(member: GuildMember) {
     }
 
     //Ignore users
-    let ignoreUsers = (await getServer(guild.id))?.ignoredUsers ?? [];
+    let ignoreUsers = serverSettings?.ignoredUsers ?? [];
     if (ignoreUsers.includes(updatedMember.id)) {
         logger.log("Blocked suggestion from ignored user with name " + updatedMember.user.tag, guild.id);
         return false;

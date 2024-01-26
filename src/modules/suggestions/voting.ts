@@ -2,7 +2,7 @@ import { EmbedBuilder, PermissionsBitField, ApplicationCommandOptionType, Applic
 const { UpdateEmbed, SendError } = require("./functions.js");
 import { logger } from "../../logger";
 import { addCommand, neutralColor, successColor, failColor } from "../../commands";
-import { client } from "../../app";
+import client from "../../client";
 import { getSuggestion, removeSuggestion, updateSuggestion } from "../../database";
 
 //Vote button

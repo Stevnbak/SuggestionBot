@@ -1,7 +1,7 @@
 import { EmbedBuilder, PermissionsBitField, ApplicationCommandOptionType, ApplicationCommandType, ChannelType, ChatInputCommandInteraction, Guild } from "discord.js";
-import { logger } from "../logger";
-import { addCommand, neutralColor, successColor, failColor } from "../commands";
-import { addIgnoredRole, addIgnoredUser, getServer, removeIgnoredRole, removeIgnoredUser, setDefaultChannel } from "../database";
+import { logger } from "../../logger";
+import { addCommand, neutralColor, successColor, failColor } from "../../commands";
+import { addIgnoredRole, addIgnoredUser, getServer, removeIgnoredRole, removeIgnoredUser, setDefaultChannel } from "../../database";
 
 addCommand(
     "channel",

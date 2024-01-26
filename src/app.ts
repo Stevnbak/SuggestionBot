@@ -7,51 +7,28 @@ export const isProduction = (process.env.NODE_ENV == "production") as boolean;
 import { logger, addFileLoggers } from "./logger";
 if (isProduction) addFileLoggers();
 //Setup database
-import { addServer, getServer, updateServerName } from "./database";
+import { startConnection, addServer, getServer, updateServerName } from "./database";
 
-//Connect to discord
-import { Client, GatewayIntentBits, Partials } from "discord.js";
+//Connect to discord (after connecting to database)
+import client from "./client";
 const TOKEN = process.env.TOKEN;
-export const client = new Client({
-    presence: { status: "online" },
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildBans,
-        GatewayIntentBits.GuildIntegrations
-    ],
-    partials: [Partials.User, Partials.GuildMember, Partials.Message, Partials.Channel, Partials.Reaction]
+startConnection().then(() => {
+    client
+        .login(TOKEN)
+        .then(() => logger.info("Logging into discord..."))
+        .catch((err) => {
+            logger.error(err);
+        });
 });
-client
-    .login(TOKEN)
-    .then(() => logger.info("Logging into discord..."))
-    .catch((err) => {
-        logger.error(err);
-    });
 
 //Import modules
-import fs from "fs";
-import path from "path";
-async function loadModuleDir(dir: string) {
-    for (let file of fs.readdirSync(dir)) {
-        let pth = path.join(dir, file);
-        if (fs.lstatSync(pth).isDirectory()) {
-            await loadModuleDir(pth);
-        } else {
-            await require(pth);
-        }
-    }
-}
-
 import { setupCommands } from "./commands";
+import "./modules/modules";
 
 //Client ready
 client.on("ready", async () => {
     logger.info(`Connected to discord as client ${client.user?.username}.`);
-    //Import modules and set up commands
-    await loadModuleDir(path.resolve(path.join("./modules")));
+    //Setup commands
     setupCommands(client);
     //Check if every server has settings
     await client.guilds.fetch();

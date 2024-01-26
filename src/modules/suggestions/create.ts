@@ -21,7 +21,7 @@ import {
 import { SendError, CanMemberCreateSuggestion } from "./functions";
 import { logger } from "../../logger";
 import { addCommand, neutralColor, successColor, failColor } from "../../commands";
-import { client } from "../../app";
+import client from "../../client";
 import { addSuggestion, getServer } from "../../database";
 import { ObjectId } from "mongodb";
 
