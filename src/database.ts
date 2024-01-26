@@ -126,7 +126,7 @@ export async function addServer(guildId: string, name: string) {
 export async function updateServerName(guildId: string, name: string) {
     try {
         logger.log("database", `Updated name of server ${name} (${guildId})`);
-        let result = await collections.settings.updateOne({ _id: guildId }, { name });
+        let result = await collections.settings.updateOne({ _id: guildId }, { $set: { name } });
         return result.acknowledged;
     } catch (err) {
         logger.log("critical", err);

@@ -24,9 +24,12 @@ export const client = new Client({
     ],
     partials: [Partials.User, Partials.GuildMember, Partials.Message, Partials.Channel, Partials.Reaction]
 });
-client.login(TOKEN).catch((err) => {
-    logger.error(err);
-});
+client
+    .login(TOKEN)
+    .then(() => logger.info("Logging into discord..."))
+    .catch((err) => {
+        logger.error(err);
+    });
 
 //Import modules
 import fs from "fs";
@@ -42,13 +45,14 @@ async function loadModuleDir(dir: string) {
     }
 }
 
+import { setupCommands } from "./commands";
+
 //Client ready
 client.on("ready", async () => {
     logger.info(`Connected to discord as client ${client.user?.username}.`);
     //Import modules and set up commands
-    const c = await import("./commands");
-    await loadModuleDir(path.resolve(path.join("src", "modules")));
-    c.setupCommands();
+    await loadModuleDir(path.resolve(path.join("./modules")));
+    setupCommands(client);
     //Check if every server has settings
     await client.guilds.fetch();
     client.guilds.cache.forEach(async (guild) => {

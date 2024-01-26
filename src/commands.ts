@@ -1,4 +1,3 @@
-import { client, isProduction } from "./app";
 import {
     ApplicationCommand,
     ApplicationCommandData,
@@ -9,6 +8,7 @@ import {
     Channel,
     ChannelType,
     ChatInputCommandInteraction,
+    Client,
     EmbedBuilder,
     Guild,
     GuildApplicationCommandManager,
@@ -96,7 +96,7 @@ export function addResponder(word: string, options: Partial<ResponderOptions>, c
 
 import { REST, Routes } from "discord.js";
 import { logger } from "./logger";
-export async function setupCommands() {
+export async function setupCommands(client: Client) {
     //Create help command
     addCommand(
         "help",
@@ -138,63 +138,63 @@ export async function setupCommands() {
     } catch (error) {
         logger.error(error);
     }
-}
 
-//Activate commands & responders
-client.on("messageCreate", (message) => {
-    //Filter out dms and other bots...
-    if (message.channel.type === ChannelType.DM || message.author.bot || message.guild == null) return;
-    //Check content
-    const content = message.content.toLowerCase();
-    for (const command of responders) {
-        if (content.includes(command.word) || command.options.aliases.some((a) => content.includes(a))) {
-            //Check if bot has the needed permissions
-            if (!checkBotPermissions(message.channel as GuildChannel, message.guild)) {
-                logger.error("Bot permission error in guild with id: " + message.guild.id);
-                return;
-            }
-            //Run callback and catch errors
-            try {
-                command.callback(message);
-            } catch (error) {
-                message
-                    .reply({
-                        embeds: [new EmbedBuilder().setDescription("An error has occurred while running this command!\nIt has been reported to the developer!").setColor(0xff0000)]
-                    })
-                    .catch(() => {});
-                logger.log("critical", error);
-            }
-        }
-    }
-});
-client.on("interactionCreate", (interaction) => {
-    //Filter out non slash commands.
-    if (!interaction.isChatInputCommand() && !interaction.isUserContextMenuCommand() && !interaction.isMessageContextMenuCommand()) return;
-    //Filter out dms, other bots...
-    if (interaction.channel?.type === ChannelType.DM || interaction.user.bot || interaction.guild == null) return;
-    //Find command.
-    for (const command of commands) {
-        if (command.command == interaction.commandName || command.options.aliases.includes(interaction.commandName)) {
-            //Check if bot has the needed permissions
-            if (!checkBotPermissions(interaction.channel as GuildChannel, interaction.guild)) {
-                logger.error("Bot permission error in guild with id: " + interaction.guild.id);
-                return;
-            }
-            //Run callback and catch errors
-            try {
-                command.callback(interaction);
-            } catch (error) {
-                interaction
-                    .reply({
-                        embeds: [new EmbedBuilder().setDescription("An error has occurred while running this command! It has been reported to the developer!").setColor(0xff0000)],
-                        ephemeral: true
-                    })
-                    .catch(() => {});
-                logger.log("critical", error);
+    //Activate commands & responders
+    client.on("messageCreate", (message) => {
+        //Filter out dms and other bots...
+        if (message.channel.type === ChannelType.DM || message.author.bot || message.guild == null) return;
+        //Check content
+        const content = message.content.toLowerCase();
+        for (const command of responders) {
+            if (content.includes(command.word) || command.options.aliases.some((a) => content.includes(a))) {
+                //Check if bot has the needed permissions
+                if (!checkBotPermissions(message.channel as GuildChannel, message.guild)) {
+                    logger.error("Bot permission error in guild with id: " + message.guild.id);
+                    return;
+                }
+                //Run callback and catch errors
+                try {
+                    command.callback(message);
+                } catch (error) {
+                    message
+                        .reply({
+                            embeds: [new EmbedBuilder().setDescription("An error has occurred while running this command!\nIt has been reported to the developer!").setColor(0xff0000)]
+                        })
+                        .catch(() => {});
+                    logger.log("critical", error);
+                }
             }
         }
-    }
-});
+    });
+    client.on("interactionCreate", (interaction) => {
+        //Filter out non slash commands.
+        if (!interaction.isChatInputCommand() && !interaction.isUserContextMenuCommand() && !interaction.isMessageContextMenuCommand()) return;
+        //Filter out dms, other bots...
+        if (interaction.channel?.type === ChannelType.DM || interaction.user.bot || interaction.guild == null) return;
+        //Find command.
+        for (const command of commands) {
+            if (command.command == interaction.commandName || command.options.aliases.includes(interaction.commandName)) {
+                //Check if bot has the needed permissions
+                if (!checkBotPermissions(interaction.channel as GuildChannel, interaction.guild)) {
+                    logger.error("Bot permission error in guild with id: " + interaction.guild.id);
+                    return;
+                }
+                //Run callback and catch errors
+                try {
+                    command.callback(interaction);
+                } catch (error) {
+                    interaction
+                        .reply({
+                            embeds: [new EmbedBuilder().setDescription("An error has occurred while running this command! It has been reported to the developer!").setColor(0xff0000)],
+                            ephemeral: true
+                        })
+                        .catch(() => {});
+                    logger.log("critical", error);
+                }
+            }
+        }
+    });
+}
 
 async function checkBotPermissions(channel: GuildChannel, guild: Guild) {
     var neededPermissions = [

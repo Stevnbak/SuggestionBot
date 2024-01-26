@@ -6,8 +6,8 @@
             "request": "launch",
             "name": "Debug Bot",
             //"preLaunchTask": "build",
-            "program": "src/app.ts",
-            "cwd": "${workspaceFolder}",
+            "program": "app.ts",
+            "cwd": "${workspaceFolder}/src",
             "env": { "NODE_ENV": "development" },
             "runtime": "bun"
         }
