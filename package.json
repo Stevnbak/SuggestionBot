@@ -6,9 +6,6 @@
     "private": true,
     "type": "commonjs",
     "author": "Stevnbak",
-    "scripts": {
-        "build": "tsc"
-    },
     "dependencies": {
         "@discordjs/rest": "^2.2.0",
         "discord.js": "^14.14.1",
