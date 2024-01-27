@@ -55,10 +55,9 @@ export async function UpdateEmbed(message: Message, positiveVotes: number, neutr
     try {
         await message.edit({ embeds: [newEmbed], components: [new ActionRowBuilder<ButtonBuilder>().addComponents([positiveButton, neutralButton, negativeButton, deleteButton])] });
     } catch (error) {
-        logger.error(`Failed to update suggestion embed for suggestion "${embed.title}"`, message.guild.id);
+        logger.error(`Failed to update suggestion embed for suggestion "${embed.title}", in the server ${message.guild.id}`);
         return;
     }
-    ///logger.log(`Updated suggestion embed for suggestion "${embed.title}"`, message.guild.id);
 
     //Color from score
     function GetColor(score: number) {
@@ -110,7 +109,7 @@ export async function CanMemberCreateSuggestion(member: GuildMember) {
     //Timed out
     if (updatedMember.communicationDisabledUntil != null) {
         if (updatedMember.communicationDisabledUntil > new Date()) {
-            logger.log("Blocked suggestion from user with name " + updatedMember.user.tag + " because of a timeout.", guild.id);
+            logger.info(`Blocked suggestion from user with name ${updatedMember.user.username} because of a timeout., in the server ${guild.id}`);
             return false;
         }
     }
@@ -119,14 +118,14 @@ export async function CanMemberCreateSuggestion(member: GuildMember) {
     let ignoreRoles = serverSettings?.ignoredRoles ?? [];
     let userRoles = updatedMember.roles.cache.map((role) => role.id);
     if (ignoreRoles.some((roleId) => userRoles.includes(roleId))) {
-        logger.log("Blocked suggestion from user with name " + updatedMember.user.tag + " because of an ignored role.", guild.id);
+        logger.info(`Blocked suggestion from user with name ${updatedMember.user.username} because of an ignored role, in the server ${guild.id}`);
         return false;
     }
 
     //Ignore users
     let ignoreUsers = serverSettings?.ignoredUsers ?? [];
     if (ignoreUsers.includes(updatedMember.id)) {
-        logger.log("Blocked suggestion from ignored user with name " + updatedMember.user.tag, guild.id);
+        logger.info(`Blocked suggestion from ignored user with name ${updatedMember.user.username}, in the server ${guild.id}`);
         return false;
     }
 
@@ -144,7 +143,7 @@ export async function SendError(interaction: ButtonInteraction | ModalSubmitInte
             try {
                 await interaction.editReply({ embeds: [new EmbedBuilder().setTitle(error).setColor(failColor)] });
             } catch (e) {
-                logger.error(`Failed to send error message to user`, interaction.guild?.id);
+                logger.error(`Failed to send error message to user, in the server ${interaction.guild?.id}`);
             }
         }
     }

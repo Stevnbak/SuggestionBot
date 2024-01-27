@@ -6,12 +6,12 @@ import { addIgnoredRole, addIgnoredUser, getServer, removeIgnoredRole, removeIgn
 addCommand(
     "channel",
     {
-        description: "Set the suggestions channel",
+        description: "Set the default suggestion channel",
         category: "Settings",
         options: [
             {
                 name: "channel",
-                description: "the channel",
+                description: "the default suggestions channel",
                 type: ApplicationCommandOptionType.Channel,
                 channelTypes: [ChannelType.GuildText]
             }
@@ -27,7 +27,7 @@ addCommand(
             setDefaultChannel(interaction.guild.id, null);
             var msgEmbed = new EmbedBuilder().setColor(successColor).setTitle(`Mod log channel has been removed`);
             await interaction.reply({ embeds: [msgEmbed], ephemeral: true });
-            logger.info(`Removed suggestion channel`, interaction.guild.id);
+            logger.info(`Removed default suggestion channel, in the server ${interaction.guild.id}`);
             return;
         }
         //Check if channel exists and is a text channel
@@ -40,7 +40,7 @@ addCommand(
         setDefaultChannel(interaction.guild.id, channel.id);
         var msgEmbed = new EmbedBuilder().setColor(successColor).setTitle(`The suggestion channel has been set to`).setDescription(`${channel}`);
         await interaction.reply({ embeds: [msgEmbed], ephemeral: true });
-        logger.info(`Set suggestion channel to #${channel.name}`, interaction.guild.id);
+        logger.info(`Set the default suggestion channel to #${channel.name}, in the server ${interaction.guild.id}`);
     }
 );
 
@@ -105,7 +105,7 @@ addCommand(
                     embeds: [new EmbedBuilder().setColor(successColor).setTitle("Added a role").setDescription(`Added ${role} to the ignore list`)],
                     ephemeral: true
                 });
-                logger.info(`Added ${role.name} (${role.id}) to the ignore list`, interaction.guild.id);
+                logger.info(`Added ${role.name} (${role.id}) to the ignore list, in the server ${interaction.guild.id}`);
             }
             if (sub == "remove") {
                 if (!currentList.includes(role.id)) {
@@ -117,7 +117,7 @@ addCommand(
                     embeds: [new EmbedBuilder().setColor(successColor).setTitle("Removed a role").setDescription(`Removed ${role} from the ignore list`)],
                     ephemeral: true
                 });
-                logger.info(`Removed ${role.name} (${role.id}) from the ignore list`, interaction.guild.id);
+                logger.info(`Removed ${role.name} (${role.id}) from the ignore list, in the server ${interaction.guild.id}`);
             }
         } else {
             //List
@@ -132,7 +132,7 @@ addCommand(
             }
             msgEmbed.setDescription(description);
             await interaction.reply({ embeds: [msgEmbed], ephemeral: true });
-            logger.info("Listed ignored roles", interaction.guild.id);
+            logger.info(`Listed ignored roles, in the server ${interaction.guild.id}`);
         }
     }
 );
@@ -198,7 +198,7 @@ addCommand(
                     embeds: [new EmbedBuilder().setColor(successColor).setTitle("Added a user").setDescription(`Added ${user} to the ban list`)],
                     ephemeral: true
                 });
-                logger.info(`Added ${user.username} (${user.id}) to the ignore list`, interaction.guild.id);
+                logger.info(`Added ${user.username} (${user.id}) to the ignore list, in the server ${interaction.guild.id}`);
             }
             if (sub == "remove") {
                 if (!currentList.includes(user.id)) {
@@ -210,7 +210,7 @@ addCommand(
                     embeds: [new EmbedBuilder().setColor(successColor).setTitle("Removed a user").setDescription(`Removed ${user} from the ban list`)],
                     ephemeral: true
                 });
-                logger.info(`Removed ${user.username} (${user.id}) from the ignore list`, interaction.guild.id);
+                logger.info(`Removed ${user.username} (${user.id}) from the ignore list, in the server ${interaction.guild.id}`);
             }
         } else {
             //List
@@ -225,7 +225,7 @@ addCommand(
             }
             msgEmbed.setDescription(description);
             await interaction.reply({ embeds: [msgEmbed], ephemeral: true });
-            logger.info("Listed ignored users", interaction.guild.id);
+            logger.info(`Listed ignored users, in the server ${interaction.guild.id}`);
         }
     }
 );

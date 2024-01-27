@@ -32,13 +32,26 @@ addCommand(
         description: "Create suggestion button embed",
         category: "Suggestions",
         permissions: new PermissionsBitField(PermissionsBitField.Flags.Administrator),
-        type: ApplicationCommandType.ChatInput
+        type: ApplicationCommandType.ChatInput,
+        options: [
+            {
+                name: "channel",
+                description: "suggestion channel (if different from default)",
+                type: ApplicationCommandOptionType.Channel,
+                required: false,
+                channelTypes: [ChannelType.GuildText]
+            }
+        ]
     },
     async (interaction: ChatInputCommandInteraction) => {
         //Create embed
         const embed = new EmbedBuilder().setTitle("Make a suggestion").setDescription("Press the create button to make your suggestion.").setColor(neutralColor);
+        let channelId = interaction.options.getChannel("channel")?.id;
         //Create buttons
-        const button = new ButtonBuilder().setStyle(ButtonStyle.Success).setLabel("Create Suggestion").setCustomId("createSuggestionButton");
+        const button = new ButtonBuilder()
+            .setStyle(ButtonStyle.Success)
+            .setLabel("Create Suggestion")
+            .setCustomId("createSuggestionButton" + (channelId ? `-${channelId}` : ""));
 
         //Send interaction
         interaction.channel!.send({
@@ -49,16 +62,27 @@ addCommand(
     }
 );
 
-//Button & Modal events
+//Button event
 client.on("interactionCreate", async (interaction: Interaction) => {
     try {
-        if (!interaction.isButton()) return;
+        if (!interaction.isButton() || !interaction.guild) return;
         //Handle create button click
-        if (interaction.customId === "createSuggestionButton") {
+        if (interaction.customId.startsWith("createSuggestionButton")) {
             //Check if member can create suggestion
             if (!(await CanMemberCreateSuggestion(interaction.member as GuildMember))) {
-                await SendError(interaction, "You cannot create a suggestion at this time.");
-                return;
+                return await SendError(interaction, "You cannot create a suggestion at this time.");
+            }
+
+            //Get channel
+            let serverSettings = await getServer(interaction.guild.id);
+            console.log(serverSettings);
+            let channelID = serverSettings?.defaultChannel;
+            if (interaction.customId.includes("-")) {
+                channelID = interaction.customId.split("-")[1];
+            }
+            console.log(channelID);
+            if (!channelID || !(await interaction.guild.channels.fetch(channelID))) {
+                return await SendError(interaction, "No suggestion channel found. Please contact the server owner.");
             }
 
             //Create input fields
@@ -75,7 +99,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
             //Create modal
             const modal = new ModalBuilder()
                 .setTitle("Create a suggestion")
-                .setCustomId("suggestionForm")
+                .setCustomId("suggestionForm-" + channelID)
                 .setComponents([
                     new ActionRowBuilder<TextInputBuilder>().addComponents(playerInput),
                     new ActionRowBuilder<TextInputBuilder>().addComponents(descriptionInput),
@@ -102,7 +126,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     try {
         if (!interaction.isModalSubmit()) return;
         if (interaction.guild == null) return;
-        if (interaction.customId != "suggestionForm") return;
+        if (!interaction.customId.startsWith("suggestionForm")) return;
 
         //Check if member can create suggestion
         if (!(await CanMemberCreateSuggestion(interaction.member as GuildMember))) {
@@ -116,16 +140,11 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         let image = interaction.fields.getTextInputValue("image") || "None";
 
         //Log channel
-        let serverSettings = await getServer(interaction.guild.id);
-        let channelID = serverSettings?.defaultChannel;
-        if (channelID == null) {
-            SendError(interaction, "The suggestion channel has not been set up yet. Please contact the server owner.");
-            return;
-        }
+        let channelID = interaction.customId.split("-")[1] ?? "";
+        console.log(channelID);
         let channel = (await interaction.guild.channels.fetch(channelID)) as TextChannel;
-        if (channel == null) {
-            SendError(interaction, "The suggestion channel has not been set up yet. Please contact the server owner.");
-            return;
+        if (!channel) {
+            return SendError(interaction, "The suggestion channel has not been set up yet. Please contact the server owner.");
         }
 
         //Embed
@@ -178,7 +197,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
             embeds: [new EmbedBuilder().setTitle(`Suggestion "${title}" received successfully`).setColor(successColor)],
             ephemeral: true
         });
-        logger.info(`${interaction.user.tag} created suggestion "${title}"`, interaction.guild.id);
+        logger.info(`${interaction.user.tag} created suggestion "${title}", in the server ${interaction.guild.id}`);
     } catch (err) {
         logger.log("critical", err);
         try {

@@ -63,7 +63,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
             consoleReply = `${interaction.user.tag} removed their vote on suggestion "${suggestion.title}"`;
         }
         interaction.deleteReply();
-        logger.info(consoleReply, interaction.guild.id);
+        logger.info(consoleReply + `, in the server ${interaction.guild.id}`);
     } catch (err) {
         logger.log("critical", err);
     }

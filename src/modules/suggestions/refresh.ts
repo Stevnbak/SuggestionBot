@@ -17,13 +17,13 @@ addCommand(
         interaction.reply({
             embeds: [
                 new EmbedBuilder()
-                    .setTitle("Starting to refresh all suggestion embeds.")
+                    .setTitle("Starting to refresh all suggestion embeds in the default channel.")
                     .setDescription("It can take a while to refresh everything, and there might be issues with voting while it's refreshing.")
                     .setColor(neutralColor)
             ],
             ephemeral: true
         });
-        logger.info("Starting to refresh all suggestion embeds", interaction.guild.id);
+        logger.info(`Starting to refresh all suggestion embeds, in the server ${interaction.guild.id}`);
 
         //Refresh suggestion embeds on bot start
         let suggestions = await getAllSuggestions(interaction.guild.id);
@@ -51,6 +51,6 @@ addCommand(
             ],
             ephemeral: true
         });
-        logger.info(`Refreshed all suggestion embeds in ${Math.round((process.uptime() - startTime) * 1000)} milliseconds`, interaction.guild.id);
+        logger.info(`Refreshed all suggestion embeds in ${Math.round((process.uptime() - startTime) * 1000)} milliseconds, in the server ${interaction.guild.id}`);
     }
 );
