@@ -13,6 +13,7 @@ export async function startConnection(isProduction: boolean) {
         monitorCommands: true
     });
     try {
+        logger.log("database", "Trying to connect to database");
         // Connect the client to the server
         await client.connect();
         // Connect to databse

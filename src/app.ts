@@ -13,12 +13,9 @@ import { startConnection, addServer, getServer, updateServerName } from "./datab
 import client from "./client";
 const TOKEN = process.env.TOKEN;
 startConnection(isProduction).then(() => {
-    client
-        .login(TOKEN)
-        .then(() => logger.info("Logging into discord..."))
-        .catch((err) => {
-            logger.error(err);
-        });
+    client.login(TOKEN).catch((err) => {
+        logger.error(err);
+    });
 });
 
 //Import modules

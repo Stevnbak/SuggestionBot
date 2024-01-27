@@ -85,12 +85,10 @@ client.on("interactionCreate", async (interaction: Interaction) => {
 
             //Get channel
             let serverSettings = await getServer(interaction.guild.id);
-            console.log(serverSettings);
             let channelID = serverSettings?.defaultChannel;
             if (interaction.customId.includes("-")) {
                 channelID = interaction.customId.split("-")[1];
             }
-            console.log(channelID);
             if (!channelID || !(await interaction.guild.channels.fetch(channelID))) {
                 return await SendError(interaction, "No suggestion channel found. Please contact the server owner.");
             }
@@ -138,6 +136,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         if (interaction.guild == null) return;
         if (!interaction.customId.startsWith("suggestionForm")) return;
 
+        interaction.deferReply({ ephemeral: true });
         //Check if member can create suggestion
         if (!(await CanMemberCreateSuggestion(interaction.member as GuildMember))) {
             await SendError(interaction as ModalSubmitInteraction, "You cannot create a suggestion at this time.");
@@ -203,9 +202,8 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         await addSuggestion(suggestion);
 
         //Reply
-        await interaction.reply({
-            embeds: [new EmbedBuilder().setTitle(`Suggestion "${title}" received successfully`).setColor(successColor)],
-            ephemeral: true
+        await interaction.editReply({
+            embeds: [new EmbedBuilder().setTitle(`Suggestion "${title}" received successfully`).setColor(successColor)]
         });
         logger.info(`${interaction.user.tag} created suggestion "${title}", in the server ${interaction.guild.id}`);
     } catch (err) {

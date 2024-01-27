@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, Partials } from "discord.js";
-export default new Client({
+const client = new Client({
     presence: { status: "online" },
     intents: [
         GatewayIntentBits.Guilds,
@@ -10,4 +10,11 @@ export default new Client({
         GatewayIntentBits.GuildIntegrations
     ],
     partials: [Partials.User, Partials.GuildMember, Partials.Message, Partials.Channel, Partials.Reaction]
+});
+export default client;
+
+//Client errors
+import { logger } from "./logger";
+client.on("error", (error) => {
+    logger.log("critical", error);
 });
