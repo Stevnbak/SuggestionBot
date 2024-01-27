@@ -40,12 +40,22 @@ addCommand(
                 type: ApplicationCommandOptionType.Channel,
                 required: false,
                 channelTypes: [ChannelType.GuildText]
+            },
+            {
+                name: "message",
+                description: "custom message",
+                type: ApplicationCommandOptionType.String,
+                required: false,
+                minLength: 10,
+                maxLength: 1000
             }
         ]
     },
     async (interaction: ChatInputCommandInteraction) => {
+        //Get message
+        let message = interaction.options.getString("message") ?? "Press the create button to make your suggestion.";
         //Create embed
-        const embed = new EmbedBuilder().setTitle("Make a suggestion").setDescription("Press the create button to make your suggestion.").setColor(neutralColor);
+        const embed = new EmbedBuilder().setTitle("Make a suggestion").setDescription(message).setColor(neutralColor);
         let channelId = interaction.options.getChannel("channel")?.id;
         //Create buttons
         const button = new ButtonBuilder()
