@@ -4,7 +4,7 @@ import { logger } from "./logger";
 let database = null as Db | null;
 export async function startConnection(isProduction: boolean) {
     // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-    const client = new MongoClient(process.env.MONGO_DB!, {
+    const mongoClient = new MongoClient(process.env.MONGO_DB!, {
         serverApi: {
             version: ServerApiVersion.v1,
             strict: true,
@@ -15,9 +15,9 @@ export async function startConnection(isProduction: boolean) {
     try {
         logger.log("database", "Trying to connect to database");
         // Connect the client to the server
-        await client.connect();
+        await mongoClient.connect();
         // Connect to databse
-        database = client.db("suggestion-bot" + (isProduction ? "" : "-dev"));
+        database = mongoClient.db("suggestion-bot" + (isProduction ? "" : "-dev"));
         // Get collections
         collections = {
             settings: database.collection("guild-settings"),
@@ -25,10 +25,11 @@ export async function startConnection(isProduction: boolean) {
         };
         logger.info(`Successfully connected to the database.`);
         logger.log("database", `Established connection to ${database.databaseName} with ${(await database.collections()).length} collections.`);
-    } catch (err: any) {
+    } catch (err) {
         logger.log("critical", err);
         // Ensures that the client will close on error
-        await client.close();
+        await mongoClient.close();
+        throw err;
     }
 }
 
