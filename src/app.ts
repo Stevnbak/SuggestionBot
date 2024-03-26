@@ -14,7 +14,8 @@ import client from "./client";
 const TOKEN = process.env.TOKEN;
 startConnection(isProduction).then(() => {
     client.login(TOKEN).catch((err) => {
-        logger.error(err);
+        logger.log("critical", err);
+        throw "Failed to connect to discord.";
     });
 });
 
@@ -38,3 +39,16 @@ client.on("ready", async () => {
         }
     });
 });
+
+//Continous check for internet connection
+import dns from "dns";
+setInterval(() => {
+    dns.lookup("google.com", function (err) {
+        if (err && err.code == "ENOTFOUND") {
+            logger.log("critical", "Lost internet connection");
+            throw "Lost internet connectionm";
+        } else {
+            //Do nothing
+        }
+    });
+}, 5 * 60 * 1000);

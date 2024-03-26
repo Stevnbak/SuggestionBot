@@ -27,9 +27,8 @@ export async function startConnection(isProduction: boolean) {
         logger.log("database", `Established connection to ${database.databaseName} with ${(await database.collections()).length} collections.`);
     } catch (err) {
         logger.log("critical", err);
-        // Ensures that the client will close on error
         await mongoClient.close();
-        throw err;
+        throw "Failed to connect to the database.";
     }
 }
 
