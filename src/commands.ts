@@ -112,13 +112,13 @@ export async function setupCommands(client: Client) {
             //Add commands
             let availableCommands = commands.filter((c) => c.options.showInHelp && interaction.memberPermissions?.has(c.options.permissions) && c.options.type == ApplicationCommandType.ChatInput);
             let fields = availableCommands ? [] : [{ name: "No commands available", value: " ", inline: false }];
-            for (const category of availableCommands.map((c) => c.options.category)) {
+            for (const category of availableCommands.map((c) => c.options.category).filter((value, index, array) => array.indexOf(value) === index)) {
                 let commands = availableCommands.filter((c) => c.options.category == category);
                 let value = commands ? "" : "No commands available";
                 for (const command of commands) {
                     let name = command.command;
                     if (command.options.aliases.length > 0) {
-                        name += ` (${command.options.aliases.join("/")})`;
+                        name += ` (/${command.options.aliases.join(", /")})`;
                     }
                     value += `***/${name}** - ${command.options.description}*\n`;
                 }
