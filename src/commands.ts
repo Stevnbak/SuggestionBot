@@ -67,25 +67,25 @@ export const neutralColor = 0x6e757d;
 //Create commands & responders
 const commands = [] as Command[];
 const responders = [] as Responder[];
-const discordCommandApplications = [] as ApplicationCommand[];
+const discordCommandApplications = [] as Object[];
 export function addCommand(command: string, options: Partial<CommandOptions>, callback: Function) {
     let completedOptions = { ...defaultCommandOptions, ...options };
     commands.push({ command, options: completedOptions, callback });
-    let interaction = {
+    let interaction: Object = {
         name: command,
         type: completedOptions.type,
-        defaultMemberPermissions: completedOptions.permissions,
-        dmPermission: false,
+        default_member_permissions: completedOptions.permissions,
+        dm_permission: false,
         options: completedOptions.options
-    } as ApplicationCommand;
+    };
     if (completedOptions.type == ApplicationCommandType.ChatInput) {
-        interaction = { ...interaction, name: command.toLowerCase(), description: completedOptions.description ?? "" } as ApplicationCommand;
+        interaction = { ...interaction, name: command.toLowerCase(), description: completedOptions.description ?? "" };
     }
     discordCommandApplications.push(interaction);
     //Aliases
     if (completedOptions.aliases && completedOptions.aliases.length > 0 && completedOptions.type == ApplicationCommandType.ChatInput) {
         for (let alias of completedOptions.aliases ?? []) {
-            let aliasInteraction = { ...interaction, name: alias.toLocaleLowerCase() } as ApplicationCommand;
+            let aliasInteraction = { ...interaction, name: alias.toLocaleLowerCase() };
             discordCommandApplications.push(aliasInteraction);
         }
     }
@@ -108,7 +108,7 @@ export async function setupCommands(client: Client) {
             embed.setDescription("Here is a list of all available slash commands with your permissions. \n*(User context menu commands are not listed here, right click a user to see those.)*");
             embed.setColor(neutralColor);
             let author = await client.users.fetch("307900989455859723");
-            embed.setFooter({ text: "Bot made by " + author.username, iconURL: author.avatarURL() ?? "" });
+            embed.setFooter({ text: "Bot made by " + author.globalName, iconURL: author.avatarURL() ?? "" });
             //Add commands
             let availableCommands = commands.filter((c) => c.options.showInHelp && interaction.memberPermissions?.has(c.options.permissions) && c.options.type == ApplicationCommandType.ChatInput);
             let fields = availableCommands ? [] : [{ name: "No commands available", value: " ", inline: false }];
@@ -133,7 +133,9 @@ export async function setupCommands(client: Client) {
     //Reload applications.
     try {
         const rest = new REST().setToken(process.env.TOKEN!);
-        await rest.put(Routes.applicationCommands(process.env.CLIENT_ID!), { body: discordCommandApplications });
+        await rest.put(Routes.applicationCommands(process.env.CLIENT_ID!), {
+            body: discordCommandApplications
+        });
         logger.info("Reloaded application commands.");
     } catch (error) {
         logger.error(error);

@@ -17,7 +17,7 @@ import {
     ChatInputCommandInteraction
 } from "discord.js";
 import { logger } from "../../logger";
-import { addCommand, neutralColor, successColor, failColor } from "../../commands";
+import { neutralColor, successColor, failColor } from "../../commands";
 import { getServer } from "../../database";
 
 export async function UpdateEmbed(message: Message, positiveVotes: number, neutralVotes: number, negativeVotes: number) {
